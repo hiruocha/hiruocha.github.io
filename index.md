@@ -3,23 +3,22 @@
 layout: home
 
 hero:
-  name: "My Awesome Project"
+  name: "昼お茶的个人小站"
   text: "A VitePress Site"
-  tagline: My great project tagline
+  tagline: 生命不息，折腾不止
   actions:
     - theme: brand
-      text: Markdown Examples
-      link: /markdown-examples
+      text: 我的项目
+      link: /project
     - theme: alt
-      text: API Examples
-      link: /api-examples
+      text: 关于本站
+      link: /README
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: Arch Linux 全盘加密安装
+    details: 使用 LUKS+btrfs 加密系统盘并启用安全启动
+    link: /2025/07/04/arch-install
+  - title: 一段“被尘封的往事”
+    details: 关于我的过去
 ---
 
