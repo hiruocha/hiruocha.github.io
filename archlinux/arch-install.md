@@ -4,7 +4,7 @@ prev: false
 # Arch Linux 全盘加密安装
 使用 LUKS+btrfs 加密系统盘并启用安全启动
 
-标签：[Arch Linux](/archlinux)
+标签：[Arch Linux](/archlinux/)
 
 >本文参考 Arch Linux 中文维基中的 [安装指南](https://wiki.archlinuxcn.org/wiki/%E5%AE%89%E8%A3%85%E6%8C%87%E5%8D%97) 和 [dm-crypt/加密整个系统](https://wiki.archlinuxcn.org/wiki/Dm-crypt/%E5%8A%A0%E5%AF%86%E6%95%B4%E4%B8%AA%E7%B3%BB%E7%BB%9F)   
 以及 Bilibili 用户 [unixchad](https://space.bilibili.com/34569411) 的视频 [全盘加密安装Arch Linux的一切（困难模式）](https://www.bilibili.com/video/BV1DTT2zSE5R/) 编写
