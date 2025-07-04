@@ -1,3 +1,6 @@
+---
+prev: false
+---
 # Arch Linux 全盘加密安装
 使用 LUKS+btrfs 加密系统盘并启用安全启动
 
@@ -10,8 +13,6 @@
 
 之前安装 Arch Linux 的时候没做记录，刚好现在把笔记本系统也给重装一下，顺便做个记录
 
-目录：
-[[toc]]
 ## 为什么要加密？
 这个嘛……就我个人认为，数据安全是一个非常重要的事，每个人都有保护好自己个人数据安全的义务
 
@@ -698,7 +699,11 @@ GRUB_CMDLINE_LINUX="cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:cry0 c
 [root@archiso /]# grub-mkconfig -o /boot/grub/grub.cfg
 ```
 此时，你只需要在开机时输入一次解密密码即可启动系统
+### 启用安全启动
+鸽了
 ### 完成安装
 输入`exit`退出`arch-chroot`
 
 输入`reboot`即可重启进入新系统
+## 安装桌面环境
+鸽了
