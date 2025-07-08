@@ -131,7 +131,7 @@ sdb          8:16   1   233G  0 disk
 ```
 `loop0`是 ISO 生成的挂载点，可以忽略
 
-`sdb`是我安装 Ventoy的 U 盘，也可以忽略
+`sdb`是我安装 Ventoy 的 U 盘，也可以忽略
 
 我们需要安装系统的盘是`sda`
 
@@ -391,7 +391,7 @@ sdb          8:16   1   233G  0 disk
 └─sdb2       8:18   1    32M  0 part
 [31mroot[0m@archiso [34m~[0m # 
 ```
-接下来创建`swapfile`并启用
+接下来创建`swapfile`并启用（推荐设置为物理内存的一到二倍）
 ```ansi
 [31mroot[0m@archiso [34m~[0m # btrfs filesystem mkswapfile --size 16g --uuid clear /mnt/swap/swapfile
 create swapfile /mnt/swap/swapfile size 16.00GiB (17179869184)
