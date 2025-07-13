@@ -452,7 +452,7 @@ Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.serv
 ```ansi
 [root@archiso /]# pacman -S base-devel btrfs-progs neovim networkmanager
 ```
-`base-devel`：一些基本的工具包
+`base-devel`：一些基本的工具包（包括`sudo`）
 
 `btrfs-progs`：`btrfs`文件系统工具
 
@@ -582,7 +582,7 @@ KEYMAP=us
 ```ansi
 [root@archiso /]# blkid -s UUID -o value /dev/sda2
 ```
-会分别得到两串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID
+会输出一串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID
 
 接下来创建一个内核参数文件
 ```ansi
@@ -699,11 +699,64 @@ GRUB_CMDLINE_LINUX="cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:cry0 c
 [root@archiso /]# grub-mkconfig -o /boot/grub/grub.cfg
 ```
 此时，你只需要在开机时输入一次解密密码即可启动系统
-### 启用安全启动
-鸽了
+### 创建新用户
+重启前我们先创建一个普通用户，以便我们后续不用一直使用`root`用户进行操作
+
+使用`useradd`创建一个用户，并将其添加进`wheel`组
+
+我的用户名是`hiruocha`，你可以按自己的喜好修改
+```ansi
+[root@archiso /]# useradd -m -G wheel hiruocha
+```
+使用`-m`参数创建一个带有家目录的普通用户，使用`-G`参数将用户添加进`whell`组内
+
+然后使用`passwd hiruocha`为该用户创建一个密码
+
+为了让该用户能使用`sudo`，我们还需要编辑`sudo`的配置文件
+```ansi
+[root@archiso /]# EDITOR=nvim visudo
+```
+将`nvim`修改为你安装的编辑器
+
+找到`# %wheel ALL=(ALL:ALL) ALL`这一行，去掉前面的注释
+```
+%wheel ALL=(ALL:ALL) ALL
+```
+保存并退出
 ### 完成安装
+#### 重启
 输入`exit`退出`arch-chroot`
 
-输入`reboot`即可重启进入新系统
+输入`reboot`即可重启
+
+重启后输入分区解密密码解密分区
+
+随后输入我们刚创建的用户名和密码进入系统
+```ansi
+Arch Linux 6.15.4-arch2-1 (tty1)
+
+Shiori-archlinux login: hiruocha
+Password: 
+```
+#### 联网
+进入新系统后，启动`NetworkManager`的`systemd`服务
+```console
+$ sudo systemctl enable --now NetworkManager
+```
+使用`nmtui`连接无线网络
+```console
+$ nmtui
+```
+会进入一个伪图形界面，使用上下左右移动，回车进入，`Esc`退出
+
+找到你的网络并连接即可
+
+此时你便可以开始愉快的滚动更新系统了
+```console
+$ sudo pacman -Syu
+```
+（然后就炸了💥
+### 启用安全启动
+鸽了
 ## 安装桌面环境
 鸽了
