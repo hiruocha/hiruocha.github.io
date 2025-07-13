@@ -2,7 +2,7 @@
 prev: false
 ---
 # Arch Linux 全盘加密安装
-使用 LUKS+btrfs 加密系统盘并启用安全启动
+使用 LUKS+btrfs 加密系统盘
 
 标签：[Arch Linux](/archlinux/)
 
@@ -332,7 +332,7 @@ Devices:
 
 使用命令`mount /dev/mapper/cry0 /mnt`挂载
 
-然后使用`btrfs subvolume create /mnt/@`命令创建子卷，我们需要分别创建`@`、`@home`、`@var`、`@swap`四个子卷
+然后使用`btrfs subvolume create`命令创建子卷，我们需要分别创建`@`、`@home`、`@var`、`@swap`四个子卷
 ```ansi
 [31mroot[0m@archiso [34m~[0m # btrfs subvolume create /mnt/@
 Create subvolume '/mnt/@'
