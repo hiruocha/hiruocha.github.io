@@ -4,6 +4,8 @@ prev: false
 # Arch Linux 安装
 使用 LUKS+btrfs 全盘加密安装
 
+写于：2025/07/04
+
 标签：[Linux](/linux/)
 >本文参考 Arch Linux 中文维基中的 [安装指南](https://wiki.archlinuxcn.org/wiki/安装指南) 和 [dm-crypt/加密整个系统](https://wiki.archlinuxcn.org/wiki/Dm-crypt/加密整个系统) 以及 Bilibili UP [unixchad](https://space.bilibili.com/34569411) 的视频 [全盘加密安装Arch Linux的一切（困难模式）](https://www.bilibili.com/video/BV1DTT2zSE5R/) 编写
 
