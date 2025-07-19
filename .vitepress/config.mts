@@ -7,6 +7,9 @@ export default defineConfig({
   lastUpdated: true,
   lang: 'zh_CN',
   cleanUrls: true,
+  ignoreDeadLinks: [
+    '/LICENSE'
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     i18nRouting: false,
