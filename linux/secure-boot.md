@@ -114,3 +114,5 @@ Secure Boot:    ✓ Enabled
 Vendor Keys:    none
 ```
 那么恭喜你🎉，你成功为你的 Arch Linux 亲手启用了安全启动
+## 为 BIOS 设置密码
+最后，在你的 BIOS 设置里设置一个管理员密码，否则攻击者同样可以轻而易举的进入你的 BIOS 关闭安全启动，那么我们做的这些事情就没有意义了
