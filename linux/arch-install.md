@@ -5,14 +5,11 @@ prev: false
 使用 LUKS+btrfs 全盘加密安装
 
 标签：[Linux](/linux/)
-
->本文参考 Arch Linux 中文维基中的 [安装指南](https://wiki.archlinuxcn.org/wiki/安装指南) 和 [dm-crypt/加密整个系统](https://wiki.archlinuxcn.org/wiki/Dm-crypt/加密整个系统)   
-以及 Bilibili 用户 [unixchad](https://space.bilibili.com/34569411) 的视频 [全盘加密安装Arch Linux的一切（困难模式）](https://www.bilibili.com/video/BV1DTT2zSE5R/) 编写
+>本文参考 Arch Linux 中文维基中的 [安装指南](https://wiki.archlinuxcn.org/wiki/安装指南) 和 [dm-crypt/加密整个系统](https://wiki.archlinuxcn.org/wiki/Dm-crypt/加密整个系统) 以及 Bilibili UP [unixchad](https://space.bilibili.com/34569411) 的视频 [全盘加密安装Arch Linux的一切（困难模式）](https://www.bilibili.com/video/BV1DTT2zSE5R/) 编写
 
 >本文不适合双系统用户，打算安装双系统的用户请**不要**参照本文
 
 之前安装的时候没做记录，刚好现在把笔记本系统也给重装一下，顺便做个记录
-
 ## 为什么要加密？
 这个嘛……就我个人认为，数据安全是一个非常重要的事，每个人都有保护好自己个人数据安全的义务
 
@@ -756,7 +753,7 @@ $ nmtui
 $ sudo pacman -Syu
 ```
 （然后就炸了💥
-### 启用安全启动
+### 安全启动
 见 [为 Arch Linux 启用安全启动](/linux/secure-boot.md)
 ## 安装桌面环境
 鸽了

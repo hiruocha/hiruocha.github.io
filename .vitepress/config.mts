@@ -21,7 +21,6 @@ export default defineConfig({
         {      
           text: 'Linux',
           items: [
-            { text: '目录', link: '/linux'},
             { text: 'Arch Linux 安装', link: '/linux/arch-install' },
             { text: '为 Arch Linux 启用安全启动', link: '/linux/secure-boot.md'}
           ]
