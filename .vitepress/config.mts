@@ -29,6 +29,7 @@ export default defineConfig({
     },
 
     socialLinks: [
+      { icon: 'codeberg', link: 'https://codeberg.org/hiruocha'},
       { icon: 'github', link: 'https://github.com/hiruocha' },
       { icon: 'bilibili', link: 'https://space.bilibili.com/687234999' }
     ],
