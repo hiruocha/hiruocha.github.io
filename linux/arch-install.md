@@ -148,7 +148,7 @@ sdb          8:16   1   233G  0 disk
 | /dev/sda1            | /dev/sda2            |
 +----------------------+----------------------+
 ```
-我们使用[fdisk](https://wiki.archlinuxcn.org/wiki/Fdisk)来创建分区
+我们使用 [fdisk](https://wiki.archlinuxcn.org/wiki/Fdisk) 来创建分区
 
 输入`fdisk /dev/你想要分区的硬盘`进入`fdisk`工具
 ```ansi
@@ -256,7 +256,7 @@ sdb          8:16   1   233G  0 disk
 mkfs.fat 4.2 (2021-01-31)
 [31mroot[0m@archiso [34m~[0m # 
 ```
-接下来我们使用[cryptsetup](https://wiki.archlinuxcn.org/wiki/Dm-crypt/%E8%AE%BE%E5%A4%87%E5%8A%A0%E5%AF%86)来加密`sda2`
+接下来我们使用 [cryptsetup](https://wiki.archlinuxcn.org/wiki/Dm-crypt/设备加密) 来加密`sda2`
 > [!NOTE]
 > 如果你需要使用`grub`作为你的引导加载器，请将此处命令改为`cryptsetup luksFormat --pbkdf pbkdf2 /dev/sda2`以使用 PBKDF2 加密方式
 
