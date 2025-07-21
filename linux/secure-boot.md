@@ -78,7 +78,7 @@ failed to verify file /efi/loader/random-seed: /efi/loader/random-seed: invalid 
 ```
 以此类推，直到所有文件被签署完毕
 ```console
-# sudo sbctl verify
+# sbctl verify
 Verifying file database and EFI images in /efi...
 ✓ /efi/EFI/BOOT/BOOTX64.EFI is signed
 ✓ /efi/EFI/Linux/arch-linux-fallback.efi is signed
