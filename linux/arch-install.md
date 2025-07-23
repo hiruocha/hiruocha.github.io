@@ -622,6 +622,10 @@ default_uki="/efi/EFI/Linux/arch-linux-fallback.efi"
 ```ansi
 [root@archiso /]# mkinitcpio -P
 ```
+（可选但推荐）删除`/boot`分区的`initramfs`镜像
+```ansi
+[root@archiso /]# rm /boot/initramfs-*.img
+```
 #### 2. grub
 首先安装`grub`软件包
 ```ansi
