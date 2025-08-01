@@ -18,8 +18,6 @@ features:
   - title: Arch Linux 安装
     details: 使用 LUKS+btrfs 全盘加密安装
     link: /linux/arch-install
-  - title: 如何在 Linux 上游玩 B 服原神
-    details: 原神，启动！
   - title: 一段“被尘封的往事”
     details: 关于我的过去
 ---

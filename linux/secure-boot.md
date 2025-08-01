@@ -1,7 +1,7 @@
 # 为 Arch Linux 启用安全启动
 物理保护数据的最后一道防线
 
-写于：2025/07/20
+发布于：2025/07/20
 
 标签：[Linux](/linux/)
 >参考 Arch Linux 中文维基 [UEFI/安全启动#sbctl](https://wiki.archlinuxcn.org/wiki/UEFI/安全启动#sbctl) 以及 Bilibili UP [unixchad](https://space.bilibili.com/34569411) 的视频 [在Arch Linux上启用UEFI/安全启动：sbctl](https://www.bilibili.com/video/BV14mLzzmEmx/) 编写
