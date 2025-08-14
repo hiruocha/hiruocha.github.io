@@ -2,6 +2,8 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  srcDir: "docs",
+  
   title: "昼お茶的个人小站",
   description: "A VitePress Site",
   lastUpdated: true,
@@ -11,14 +13,19 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     i18nRouting: false,
 
+    docFooter: {
+      prev: '上一页',
+      next: '下一页'
+    },
+
     nav: [
       { text: '主页', link: '/' },
-      { text: '标签', link: '/tags' }
+      { text: 'Linux', link: '/linux/arch-install' }
     ],
 
     sidebar: {
       '/linux/': [
-        {      
+        {
           text: 'Linux',
           items: [
             { text: 'Arch Linux 安装', link: '/linux/arch-install' },

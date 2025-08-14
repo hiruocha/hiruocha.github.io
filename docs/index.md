@@ -8,11 +8,11 @@ hero:
   tagline: 生命不息，折腾不止
   actions:
     - theme: brand
+      text: 标签
+      link: /tags
+    - theme: alt
       text: 我的项目
       link: /project
-    - theme: alt
-      text: 关于本站
-      link: /README
 
 features:
   - title: Arch Linux 安装
