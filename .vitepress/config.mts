@@ -20,7 +20,7 @@ export default defineConfig({
 
     nav: [
       { text: '主页', link: '/' },
-      { text: 'Linux', link: '/linux/arch-install' }
+      { text: 'Linux', link: '/linux/arch-linux-安装' }
     ],
 
     sidebar: {
@@ -28,8 +28,8 @@ export default defineConfig({
         {
           text: 'Linux',
           items: [
-            { text: 'Arch Linux 安装', link: '/linux/arch-install' },
-            { text: '为 Arch Linux 启用安全启动', link: '/linux/secure-boot' }
+            { text: 'Arch Linux 安装', link: '/linux/arch-linux-安装' },
+            { text: '为 Arch Linux 启用安全启动', link: '/linux/为-arch-linux-启用安全启动' }
           ]
         }
       ]

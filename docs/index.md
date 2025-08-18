@@ -9,15 +9,15 @@ hero:
   actions:
     - theme: brand
       text: 标签
-      link: /tags
+      link: /标签
     - theme: alt
       text: 我的项目
-      link: /project
+      link: /我的项目
 
 features:
   - title: Arch Linux 安装
     details: 使用 LUKS+btrfs 全盘加密安装
-    link: /linux/arch-install
+    link: /linux/arch-linux-安装
   - title: 一段“被尘封的往事”
     details: 关于我的过去
 ---
