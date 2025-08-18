@@ -6,7 +6,7 @@ prev: false
 
 发布于：2025/07/04
 
-标签：Linux
+标签：GNU/Linux
 >本文参考 Arch Linux 中文维基中的 [安装指南](https://wiki.archlinuxcn.org/wiki/安装指南) 和 [dm-crypt/加密整个系统](https://wiki.archlinuxcn.org/wiki/Dm-crypt/加密整个系统) 以及 Bilibili UP [unixchad](https://space.bilibili.com/34569411) 的视频 [全盘加密安装Arch Linux的一切（困难模式）](https://www.bilibili.com/video/BV1DTT2zSE5R/) 编写
 
 >本文不适合双系统用户，打算安装双系统的用户请**不要**参照本文
@@ -759,6 +759,6 @@ $ sudo pacman -Syu
 ```
 （然后就炸了💥
 ### 安全启动
-见 [为 Arch Linux 启用安全启动](/linux/为-arch-linux-启用安全启动.md)
+见 [为 Arch Linux 启用安全启动](/gnu-linux/为-arch-linux-启用安全启动.md)
 ## 安装桌面环境
 鸽了

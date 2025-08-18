@@ -13,6 +13,10 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     i18nRouting: false,
 
+    search: {
+      provider: 'local'
+    },
+
     docFooter: {
       prev: '上一页',
       next: '下一页'
@@ -20,16 +24,16 @@ export default defineConfig({
 
     nav: [
       { text: '主页', link: '/' },
-      { text: 'Linux', link: '/linux/arch-linux-安装' }
+      { text: '标签', link: '/标签' }
     ],
 
     sidebar: {
-      '/linux/': [
+      '/gnu-linux/': [
         {
-          text: 'Linux',
+          text: 'GNU/Linux',
           items: [
-            { text: 'Arch Linux 安装', link: '/linux/arch-linux-安装' },
-            { text: '为 Arch Linux 启用安全启动', link: '/linux/为-arch-linux-启用安全启动' }
+            { text: 'Arch Linux 安装', link: '/gnu-linux/arch-linux-安装' },
+            { text: '为 Arch Linux 启用安全启动', link: '/gnu-linux/为-arch-linux-启用安全启动' }
           ]
         }
       ]
