@@ -4,7 +4,7 @@
 发布于：2025/07/20
 
 标签：GNU/Linux
->参考 Arch Linux 中文维基 [UEFI/安全启动#sbctl](https://wiki.archlinuxcn.org/wiki/UEFI/安全启动#sbctl) 以及 Bilibili UP [unixchad](https://space.bilibili.com/34569411) 的视频 [在Arch Linux上启用UEFI/安全启动：sbctl](https://www.bilibili.com/video/BV14mLzzmEmx/) 编写
+>参考 Arch Linux 中文维基 [UEFI/安全启动#sbctl](https://wiki.archlinuxcn.org/wiki/UEFI/安全启动#sbctl) [可信平台模块](https://wiki.archlinuxcn.org/wiki/可信平台模块) 和 Arch Linux Wiki [systemd-cryptenroll](https://wiki.archlinux.org/title/Systemd-cryptenroll) 以及 Bilibili UP [unixchad](https://space.bilibili.com/34569411) 的视频 [在Arch Linux上启用UEFI/安全启动：sbctl](https://www.bilibili.com/video/BV14mLzzmEmx/) 编写
 ## 安全启动的作用（为什么需要安全启动？）
 虽然在我们的教程里把`/boot`放进了加密分区内，但总会有未加密的引导加载器（如果你按照我的教程安装的话那就是`/efi`）暴露在外面
 
@@ -116,5 +116,89 @@ Secure Boot:    ✓ Enabled
 Vendor Keys:    none
 ```
 那么恭喜你🎉，你成功为你的 Arch Linux 亲手启用了安全启动
+## 使用 TPM 2.0 自动解密根分区
+启用了安全启动后，我们就可以通过让 TPM 读取安全启动状态来自动解密根分区了，需要配合`systemd-boot`使用（或者使用`grub`引导 UKI 镜像）
+### 检查 TPM 支持
+首先检查 tpm 模块是否存在以及版本号
+```console
+$ cat /sys/class/tpm/tpm0/device/description
+TPM 2.0 Device
+```
+需要输出`TPM 2.0 Device`
+
+也可以使用`systemd-analyze`同时检查 TPM 2.0 和必要的软件依赖
+```console
+$ systemd-analyze has-tpm2
+yes
++firmware
++driver
++system
++subsystem
++libraries
+  +libtss2-esys.so.0
+  +libtss2-rc.so.0
+  +libtss2-mu.so.0
+```
+> [!TIP]
+> 如果输出版本为 1.2 或没有输出的话，可能不是不支持 TPM 2.0，而是默认关闭了，可以进入 BIOS 检查是否有开启或切换版本的选项
+
+如果支持，那么我们就可以为分区注册 TPM 了
+
+在注册前，我们可以先看看当前已注册的解密方式
+```console
+# systemd-cryptenroll /dev/sda2
+SLOT TYPE    
+   0 password
+```
+可以看到只有一个密码
+
+也可以查看下已安装的 TPM 设备，如果有多个可以手动指定（虽然大部分人的电脑应该都只有一个）
+```console
+$ systemd-cryptenroll --tpm2-device=list
+PATH        DEVICE      DRIVER 
+/dev/tpmrm0 MSFT0101:00 tpm_crb
+```
+### 注册 TPM 到加密分区
+> [!WARNING]
+> 请在安全启动已成功启用的状态下注册！
+```console
+# systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7 /dev/sda2
+🔐 Please enter current passphrase for disk /dev/sda2: (press TAB for no echo) 
+New TPM2 token enrolled as key slot 1.
+```
+使用`--tpm2-pcrs=7`来检测安全启动状态
+
+输入你的解密密码，如果显示`New TPM2 token enrolled as key slot 1.`就是注册成功了
+> [!NOTE]
+> 如果有多个的话，把`--tpm2-device=auto`改成`--tpm2-device=/dev/tpmrm0`或其他显示的路径来指定其中一个
+
+这时再列出所有已注册的解密方式，就能看到 TPM 了
+```console
+# systemd-cryptenroll /dev/sda2
+SLOT TYPE    
+   0 password
+   1 tpm2
+```
+### 启用自动解密
+获取加密分区的 UUID
+```console
+# blkid -s UUID -o value /dev/sda2
+xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+创建或编辑`/etc/crypttab.initramfs`
+```console
+# nvim /etc/crypttab.initramfs
+```
+写入以下内容
+```
+cry0 UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx none tpm2-device=auto
+```
+> [!NOTE]
+> 如果如果前面有指定的话，记得把这里的`--tpm2-device=auto`也改成跟前面一致
+
+再重新生成`initramfs`镜像
+```console
+# mkinitcpio -P
+```
 ## 为 BIOS 设置密码
 最后，在你的 BIOS 设置里设置一个管理员密码，否则攻击者同样可以轻而易举的进入你的 BIOS 关闭安全启动，那么我们做的这些事情就没有意义了
