@@ -521,10 +521,10 @@ Shiori-archlinux
 ```ansi
 [root@archiso /]# nvim /etc/fstab
 ```
-找到`/swap`的行，把`compress=zstd:3`删掉，注意删掉一个逗号
+找到`/swap`的行，把relatime改成noatime，并把`compress=zstd:3`删掉，注意删掉一个逗号
 ```
 # /dev/mapper/cry0
-UUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX       /swap           btrfs           rw,relatime,ssd,space_cache=v2,subvol=/@swap    0 0
+UUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX       /swap           btrfs           rw,noatime,ssd,space_cache=v2,subvol=/@swap    0 0
 ```
 为`root`用户设置一个密码
 ```ansi
