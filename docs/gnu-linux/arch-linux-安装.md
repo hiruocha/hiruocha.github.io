@@ -113,41 +113,21 @@ rtt min/avg/max/mdev = 199.000/201.667/205.000/2.494 ms
 > [!CAUTION]
 > 再次提醒，此操作会清空硬盘上所有数据，请务必做好备份！
 #### 分区
-使用`lsblk`列出电脑上的硬盘
+使用`lsblk`列出电脑上的硬盘（为了直观简洁，我只保留要操作的硬盘）
 ```ansi
 [31mroot[0m@archiso [34m~[0m # lsblk
 NAME       MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-loop0        7:0    0 942.7M  1 loop /run/archiso/airootfs
 sda          8:0    0 476.9G  0 disk 
 ├─sda1       8:1    0   286M  0 part 
 └─sda2       8:2    0 476.7G  0 part 
-sdb          8:16   1   233G  0 disk 
-├─sdb1       8:17   1   233G  0 part 
-│ ├─ventoy 253:0    0   1.3G  1 dm   
-│ └─sdb1   253:1    0   233G  0 dm   
-└─sdb2       8:18   1    32M  0 part 
 [31mroot[0m@archiso [34m~[0m # 
 ```
-`loop0`是 ISO 生成的挂载点，可以忽略
-
-`sdb`是我安装 Ventoy 的 U 盘，也可以忽略
-
-我们需要安装系统的盘是`sda`
+这里我们需要安装系统的盘是`sda`
 
 （你的设备可能会跟我显示的不一样，请自行根据大小及分区判断）
 
 我的`sda`内已经装过系统了，如果你是第一次装系统，你可能看不到里面有分区，不过这不影响接下来的操作
 
-我们需要创建的分区结构如下：
-```
-+----------------------+----------------------+
-| EFI系统分区          | Btrfs 文件系统       |
-| 未加密               | LUKS2 模式加密       |
-|                      |                      |
-| /efi                 | @ @home @var @swap   |
-| /dev/sda1            | /dev/sda2            |
-+----------------------+----------------------+
-```
 我们使用 [fdisk](https://wiki.archlinuxcn.org/wiki/Fdisk) 来创建分区
 
 输入`fdisk /dev/你想要分区的硬盘`进入`fdisk`工具
@@ -233,15 +213,9 @@ Syncing disks.
 ```ansi
 [31mroot[0m@archiso [34m~[0m # lsblk
 NAME       MAJ:MIN RM   SIZE RO TYPE MOUNTPOINTS
-loop0        7:0    0 942.7M  1 loop /run/archiso/airootfs
 sda          8:0    0 476.9G  0 disk 
 ├─sda1       8:1    0     1G  0 part 
 └─sda2       8:2    0 475.9G  0 part 
-sdb          8:16   1   233G  0 disk 
-├─sdb1       8:17   1   233G  0 part 
-│ ├─ventoy 253:0    0   1.3G  1 dm   
-│ └─sdb1   253:1    0   233G  0 dm   
-└─sdb2       8:18   1    32M  0 part 
 [31mroot[0m@archiso [34m~[0m # 
 ```
 可以看到，`sda`中已经创建了一个 1G 大小的`sda1`和一个 475.9G 大小的`sda2`
@@ -257,8 +231,6 @@ mkfs.fat 4.2 (2021-01-31)
 [31mroot[0m@archiso [34m~[0m # 
 ```
 接下来我们使用 [cryptsetup](https://wiki.archlinuxcn.org/wiki/Dm-crypt/设备加密) 来加密`sda2`
-> [!NOTE]
-> 如果你需要使用`grub`作为你的引导加载器，请将此处命令改为`cryptsetup luksFormat --pbkdf pbkdf2 /dev/sda2`以使用 PBKDF2 加密方式
 
 输入`cryptsetup luksFormat /dev/sda2`
 ```ansi
@@ -287,8 +259,118 @@ cryptsetup open /dev/sda2 cry0  6.74s user 0.09s system 123% cpu 5.556 total
 [31mroot[0m@archiso [34m~[0m # 
 ```
 输入密码，完成解密，解密后的分区映射在`/dev/mapper/cry0`
+#### 创建文件系统
+选择喜欢的文件系统格式，LVM 和 btrfs 都比较灵活，可以创建跨盘文件系统，且都支持写时复制
+##### 1. LVM + ext4
+其实 LVM 可以搭配任何格式，这里以 ext4 为例
+###### 创建 LVM 卷组
+使用`pvcreate`在解密后的分区上创建物理卷
+```ansi
+[31mroot[0m@archiso [34m~[0m # pvcreate /dev/mapper/cry0
+  Physical volume "/dev/mapper/cry0" successfully created.
+[31mroot[0m@archiso [34m~[0m # 
+```
+> [!WARNING]
+> 此处要操作的是`/dev/mapper/cry0`而不是`/dev/sda2`，不要搞错了
 
-接下来将解密后的分区格式化为 btrfs 格式
+再使用`vgcreate`在物理卷上创建逻辑卷组
+```ansi
+[31mroot[0m@archiso [34m~[0m # vgcreate vg0 /dev/mapper/cry0 
+  Volume group "vg0" successfully created
+[31mroot[0m@archiso [34m~[0m # 
+```
+接下来使用`lvcreate`开始创建逻辑卷
+```ansi
+[31mroot[0m@archiso [34m~[0m # lvcreate -L 16G vg0 -n swap
+  Logical volume "swap" created.
+[31mroot[0m@archiso [34m~[0m # lvcreate -L 64G vg0 -n root 
+  Logical volume "root" created.
+[31mroot[0m@archiso [34m~[0m # lvcreate -l +100%FREE vg0 -n home
+  Logical volume "home" created.
+[31mroot[0m@archiso [34m~[0m # 
+```
+我这里创建了三个逻辑卷，分别命名为`swap`、`root`、`home`
+
+顾名思义，`swap`分区是用来做`swap`的（推荐设置为物理内存的一到二倍）
+
+`root`分区则是根分区，我这里分 64GB，应该够用
+
+`home`则是用户家目录，把剩下的所有空间全部分配
+
+全部创建好后可以输入`lsblk`验证
+```ansi
+[31mroot[0m@archiso [34m~[0m # lsblk
+NAME           MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINTS
+sda              8:0    0 476.9G  0 disk  
+├─sda1           8:1    0     1G  0 part  
+└─sda2           8:2    0 475.9G  0 part  
+  └─cry0       253:2    0 475.9G  0 crypt 
+    ├─vg0-swap 253:3    0    16G  0 lvm   
+    ├─vg0-root 253:4    0    64G  0 lvm   
+    └─vg0-home 253:5    0 395.9G  0 lvm   
+[31mroot[0m@archiso [34m~[0m # 
+```
+###### 格式化逻辑卷并挂载
+接下来，分别格式化创建好的各个逻辑卷（即分区）
+```ansi
+[31mroot[0m@archiso [34m~[0m # mkfs.ext4 /dev/vg0/root
+mke2fs 1.47.3 (8-Jul-2025)
+Creating filesystem with 16777216 4k blocks and 4194304 inodes
+Filesystem UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+Superblock backups stored on blocks: 
+	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208, 
+	4096000, 7962624, 11239424
+
+Allocating group tables: done                            
+Writing inode tables: done                            
+Creating journal (131072 blocks): done
+Writing superblocks and filesystem accounting information: done   
+
+[31mroot[0m@archiso [34m~[0m # mkfs.ext4 /dev/vg0/home
+mke2fs 1.47.3 (8-Jul-2025)
+Creating filesystem with 103788544 4k blocks and 25952256 inodes
+Filesystem UUID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+Superblock backups stored on blocks: 
+	32768, 98304, 163840, 229376, 294912, 819200, 884736, 1605632, 2654208, 
+	4096000, 7962624, 11239424, 20480000, 23887872, 71663616, 78675968, 
+	102400000
+
+Allocating group tables: done                            
+Writing inode tables: done                            
+Creating journal (262144 blocks): done
+Writing superblocks and filesystem accounting information: done     
+
+[31mroot[0m@archiso [34m~[0m # mkswap /dev/vg0/swap 
+Setting up swapspace version 1, size = 16 GiB (17179865088 bytes)
+no label, UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxxx
+[31mroot[0m@archiso [34m~[0m # 
+```
+接下来按顺序挂载所有分区，并启用`swap`
+```ansi
+[31mroot[0m@archiso [34m~[0m # mount /dev/vg0/root /mnt
+[31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/vg0/home /mnt/home
+[31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/sda1 /mnt/boot 
+[31mroot[0m@archiso [34m~[0m # swapon /dev/vg0/swap 
+[31mroot[0m@archiso [34m~[0m # 
+```
+> [!WARNING]
+> 如果你要使用`systemd-boot`作为你的引导加载器，那么建议把`esp`分区挂载到`/mnt/efi`而非`/mnt/boot`
+
+最后使用`lsblk`检查挂载情况
+```ansi
+[31mroot[0m@archiso [34m~[0m # lsblk
+NAME           MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINTS
+sda              8:0    0 476.9G  0 disk  
+├─sda1           8:1    0     1G  0 part  /mnt/boot
+└─sda2           8:2    0 475.9G  0 part  
+  └─cry0       253:2    0 475.9G  0 crypt 
+    ├─vg0-swap 253:3    0    16G  0 lvm   [SWAP]
+    ├─vg0-root 253:4    0    64G  0 lvm   /mnt
+    └─vg0-home 253:5    0 395.9G  0 lvm   /mnt/home
+[31mroot[0m@archiso [34m~[0m # 
+```
+##### 2. btrfs
+将解密后的分区格式化为 btrfs 格式
 
 输入`mkfs.btrfs /dev/mapper/cry0`进行格式化
 > [!WARNING]
@@ -325,7 +407,7 @@ Devices:
 
 [31mroot[0m@archiso [34m~[0m # 
 ```
-#### 创建 btrfs 子卷
+###### 创建 btrfs 子卷
 
 首先把格式化完成的分区挂载到`/mnt`
 
@@ -358,7 +440,7 @@ ID      gen     top level       path
 ```ansi
 [31mroot[0m@archiso [34m~[0m # umount /mnt
 ```
-#### 挂载所有分区
+###### 挂载所有分区
 接下来按照顺序挂载我们创建好的所有分区
 
 从根分区开始
@@ -369,25 +451,22 @@ ID      gen     top level       path
 [31mroot[0m@archiso [34m~[0m # mount --mkdir -o compress=zstd,subvol=@home /dev/mapper/cry0 /mnt/home
 [31mroot[0m@archiso [34m~[0m # mount --mkdir -o compress=zstd,subvol=@var /dev/mapper/cry0 /mnt/var 
 [31mroot[0m@archiso [34m~[0m # mount --mkdir -o subvol=@swap /dev/mapper/cry0 /mnt/swap
-[31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/sda1 /mnt/efi
+[31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/sda1 /mnt/boot
 ```
+> [!WARNING]
+> 如果你要使用`systemd-boot`作为你的引导加载器，那么建议把`esp`分区挂载到`/mnt/efi`而非`/mnt/boot`
+
 挂载好后的`lsblk`输出应该是这样的
 ```ansi
 [31mroot[0m@archiso [34m~[0m # lsblk
 NAME       MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINTS
-loop0        7:0    0 942.7M  1 loop  /run/archiso/airootfs
 sda          8:0    0 476.9G  0 disk  
-├─sda1       8:1    0     1G  0 part  /mnt/efi
+├─sda1       8:1    0     1G  0 part  /mnt/boot
 └─sda2       8:2    0 475.9G  0 part  
   └─cry0   253:2    0 475.9G  0 crypt /mnt/swap
                                       /mnt/var
                                       /mnt/home
                                       /mnt
-sdb          8:16   1   233G  0 disk  
-├─sdb1       8:17   1   233G  0 part  
-│ ├─ventoy 253:0    0   1.3G  1 dm    
-│ └─sdb1   253:1    0   233G  0 dm    
-└─sdb2       8:18   1    32M  0 part
 [31mroot[0m@archiso [34m~[0m # 
 ```
 接下来创建`swapfile`并启用（推荐设置为物理内存的一到二倍）
@@ -411,7 +490,7 @@ create swapfile /mnt/swap/swapfile size 16.00GiB (17179869184)
 
 之后刷新软件包缓存并更新密钥环
 ```ansi
-[31mroot[0m@archiso [34m~[0m # pacman -Sy archlinux-keyring
+[31mroot[0m@archiso [34m~[0m # pacman -Sy --needed archlinux-keyring
 ```
 接下来往新系统里安装最基础的软件包
 
@@ -449,11 +528,13 @@ Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.serv
 
 接下来安装一些基本工具
 ```ansi
-[root@archiso /]# pacman -S base-devel btrfs-progs neovim networkmanager
+[root@archiso /]# pacman -S base-devel btrfs-progs lvm2 neovim networkmanager
 ```
 `base-devel`：一些基本的工具包（包括`sudo`）
 
-`btrfs-progs`：`btrfs`文件系统工具
+`btrfs-progs`：`btrfs`文件系统工具（选择 btrfs 文件系统需装）
+
+`lvm2`：LVM 管理工具（选择 LVM 卷需装）
 
 `neovim`：文本编辑器（不会用`vim`可以替换成`nano`）
 
@@ -517,11 +598,11 @@ Shiori-archlinux
 ::1              localhost
 127.0.1.1        Shiori-archlinux.localdomain Shiori-archlinux
 ```
-然后我们修改一下刚刚生成的`fstab`
+（`btrfs`）然后我们修改一下刚刚生成的`fstab`
 ```ansi
 [root@archiso /]# nvim /etc/fstab
 ```
-找到`/swap`的行，把relatime改成noatime，并把`compress=zstd:3`删掉，注意删掉一个逗号
+（`btrfs`）找到`/swap`的行，把relatime改成noatime，并把`compress=zstd:3`删掉，注意删掉一个逗号
 ```
 # /dev/mapper/cry0
 UUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX       /swap           btrfs           rw,noatime,ssd,space_cache=v2,subvol=/@swap    0 0
@@ -536,8 +617,69 @@ passwd: password updated successfully
 ```
 同样是输入两遍，屏幕上不显示
 ### 安装引导加载器
-我们选用`systemd-boot`（推荐）或`grub`来作为我们的引导加载器，请自行选择
-#### 1. systemd-boot
+我们选用`grub`或`systemd-boot`或`refind`来作为我们的引导加载器，请自行选择
+
+首先编辑`mkinitcpio.conf`
+```ansi
+[root@archiso /]# nvim /etc/mkinitcpio.conf
+```
+找到`HOOKS=`这一行，我们将钩子替换为`systemd`提供的
+```
+HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)
+```
+使用`systemd`替换了`udev`，使用`sd-vconsole`替换了`keymap`和`consolefont`，在`block`和`filesystems`之间加入`sd-encrypt`
+
+（如果你使用 LVM，那么还要在`sd-encrypt`后添加`lvm2`）
+
+创建`/etc/vconsole.conf`
+```ansi
+[root@archiso /]# nvim /etc/vconsole.conf
+```
+在里面添加
+```
+KEYMAP=us
+```
+#### 1. grub
+首先安装`grub`软件包
+```ansi
+[root@archiso /]# pacman -S grub efibootmgr
+```
+生成`initramfs`
+```ansi
+[root@archiso /]# mkinitcpio -P
+```
+获取加密分区的 UUID
+```ansi
+[root@archiso /]# blkid -s UUID -o value /dev/sda2
+```
+会输出一串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID，记住它，等会要用
+
+接下来配置`grub`
+
+打开`/etc/default/grub`
+```ansi
+[root@archiso /]# nvim /etc/default/grub
+```
+编辑`GRUB_CMDLINE_LINUX=""`这一行
+
+```
+GRUB_CMDLINE_LINUX="rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0"
+```
+把`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`替换为刚刚输出的 UUID
+
+接着安装`grub`到 EFI 分区
+```ansi
+[root@archiso /]# grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=archlinux --removable --modules="tpm" --disable-shim-lock
+```
+为支持某些主板，使用`--removable`将`grub`安装到`/efi/EFI/BOOT/BOOTX64.EFI`
+
+为支持安全启动，使用`--modules="tpm" --disable-shim-lock`安装
+
+生成`grub`配置
+```ansi
+[root@archiso /]# grub-mkconfig -o /boot/grub/grub.cfg
+```
+#### 2. systemd-boot
 使用`bootctl`将`systemd-boot`安装到 EFI 分区内
 ```ansi
 [root@archiso /]# bootctl install
@@ -559,29 +701,11 @@ Random seed file /efi/loader/random-seed successfully written (32 bytes).
 
 接下来把`initramfs`镜像安装到 EFI 分区内
 
-编辑`mkinitcpio.conf`
-```ansi
-[root@archiso /]# nvim /etc/mkinitcpio.conf
-```
-找到`HOOKS=`这一行，我们将钩子替换为`systemd`提供的
-```
-HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)
-```
-使用`systemd`替换了`udev`，使用`sd-vconsole`替换了`keymap`和`consolefont`，在`block`和`filesystems`之间加入`sd-encrypt`
-
-创建`/etc/vconsole.conf`
-```ansi
-[root@archiso /]# nvim /etc/vconsole.conf
-```
-在里面添加
-```
-KEYMAP=us
-```
 获取加密分区的 UUID
 ```ansi
 [root@archiso /]# blkid -s UUID -o value /dev/sda2
 ```
-会输出一串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID
+会输出一串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID，记住它，等会要用
 
 接下来创建一个内核参数文件
 ```ansi
@@ -589,8 +713,14 @@ KEYMAP=us
 [root@archiso /]# nvim /etc/kernel/cmdline
 ```
 写入以下内容（注意把 UUID 换成你刚刚获取的）
+
+（LVM）
 ```
-rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/mapper/cry0 rootflags=subvol=@ quiet
+rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/vg0/root
+```
+（btrfs）
+```
+rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/mapper/cry0 rootflags=subvol=@
 ```
 
 接下来我们更改内核配置文件让它在 EFI 分区内生成 UKI 镜像
@@ -625,82 +755,40 @@ default_uki="/efi/EFI/Linux/arch-linux-fallback.efi"
 ```ansi
 [root@archiso /]# rm /boot/initramfs-*.img
 ```
-#### 2. grub
-首先安装`grub`软件包
+#### 3. refind
+首先安装`refind`
 ```ansi
-[root@archiso /]# pacman -S grub efibootmgr
+[root@archiso /]# pacman -S refind
 ```
-与`systemd-boot`不同，我们的`initramfs`放在了加密分区内，为了不要每次启动都输入好几次密码，我们创建一个用于解锁分区的密钥文件
-```ansi
-[root@archiso /]# dd bs=1024 count=4 if=/dev/random of=/etc/cryptsetup-keys.d/crypt.key iflag=fullblock
-[root@archiso /]# chmod 400 /etc/cryptsetup-keys.d/crypt.key
-[root@archiso /]# cryptsetup luksAddKey /dev/sda2 /etc/cryptsetup-keys.d/crypt.key
-```
-这三条命令分别是：
-
-1. 生成一个随机内容的密钥文件
-
-2. 将文件设置为仅管理员只读
-
-3. 将密钥文件附加到加密分区
-
-接下来编辑`mkinitcpio.conf`
-```ansi
-[root@archiso /]# nvim /etc/mkinitcpio.conf
-```
-找到`HOOKS=`这一行，注意是前面没有注释的那一行，在`block`与`filesystems`之间插入`encrypt`
-```conf
-HOOKS=(base udev autodetect microcode modconf kms keyboard keymap consolefont block encrypt filesystems fsck)
-```
-找到`FILES=`这一行，添加上我们的密钥文件
-```
-FILES=(/etc/cryptsetup-keys.d/crypt.key)
-```
-保存并退出
-
-生成`initramfs`
+生成`initramfs`镜像
 ```ansi
 [root@archiso /]# mkinitcpio -P
 ```
-接下来配置`grub`
-
-打开`/etc/default/grub`
+使用`refind-install`将`refind`安装到 EFI 分区内
 ```ansi
-[root@archiso /]# nvim /etc/default/grub
-```
-找到
-```
-#GRUB_ENABLE_CRYPTODISK=y
-```
-去掉注释
-```
-GRUB_ENABLE_CRYPTODISK=y
+[root@archiso /]# refind-install --usedefault /dev/sda1
 ```
 获取加密分区的 UUID
 ```ansi
 [root@archiso /]# blkid -s UUID -o value /dev/sda2
 ```
-会输出一串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID
+会输出一串类似`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`的 UUID，记住它，等会要用
 
-找到`GRUB_CMDLINE_LINUX=`开头的行，添加`cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:cry0 cryptkey=rootfs:/etc/cryptsetup-keys.d/crypt.key`
-
-记得把`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`换成刚才获得的值
-```
-GRUB_CMDLINE_LINUX="cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:cry0 cryptkey=rootfs:/etc/cryptsetup-keys.d/crypt.key"
-```
-接着安装`grub`到 EFI 分区
+接下来创建一个 refind 配置文件
 ```ansi
-[root@archiso /]# grub-install --target=x86_64-efi --efi-directory=/efi --bootloader-id=archlinux --removable --modules="tpm" --disable-shim-lock
+[root@archiso /]# nvim /boot/refind_linux.conf
 ```
-为支持某些主板，使用`--removable`将`grub`安装到`/efi/EFI/BOOT/BOOTX64.EFI`
+写入以下内容（注意把 UUID 换成你刚刚获取的）
 
-为支持安全启动，使用`--modules="tpm" --disable-shim-lock`安装
-
-生成`grub`配置
-```ansi
-[root@archiso /]# grub-mkconfig -o /boot/grub/grub.cfg
+（LVM）
 ```
-此时，你只需要在开机时输入一次解密密码即可启动系统
+"Arch Linux" "rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/vg0/root rw initrd=intel-ucode.img initrd=initramfs-linux.img"
+```
+（btrfs）
+```
+"Arch Linux" "rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/mapper/cry0 rootflags=subvol=@ rw initrd=intel-ucode.img initrd=initramfs-linux.img"
+```
+注意最后一个参数的`initrd=initramfs-linux.img`要改成你实际的`initramfs`镜像的名称，可以使用`ls /boot`查看
 ### 创建新用户
 重启前我们先创建一个普通用户，以便我们后续不用一直使用`root`用户进行操作
 
