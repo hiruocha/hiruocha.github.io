@@ -54,13 +54,17 @@ Vendor Keys:    none
 ### 签署文件
 终于，我们正式开始签署我们的文件
 
-首先列出所有待签署的文件
+首先我们重新生成一次`initramfs`，这会帮我们自动签署生成的文件
+```console
+# mkinitcpio -P
+```
+然后列出所有待签署的文件
 ```console
 # sbctl verify
 Verifying file database and EFI images in /efi...
 ✗ /efi/EFI/BOOT/BOOTX64.EFI is not signed
-✗ /efi/EFI/Linux/arch-linux-fallback.efi is not signed
-✗ /efi/EFI/Linux/arch-linux.efi is not signed
+✓ /efi/EFI/Linux/arch-linux-fallback.efi is signed
+✓ /efi/EFI/Linux/arch-linux.efi is signed
 ✗ /efi/EFI/systemd/systemd-bootx64.efi is not signed
 failed to verify file /efi/loader/entries.srel: /efi/loader/entries.srel: invalid pe header
 failed to verify file /efi/loader/loader.conf: /efi/loader/loader.conf: invalid pe header
