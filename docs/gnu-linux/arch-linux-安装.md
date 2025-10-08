@@ -679,6 +679,8 @@ GRUB_CMDLINE_LINUX="rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0"
 ```ansi
 [root@archiso /]# grub-mkconfig -o /boot/grub/grub.cfg
 ```
+> [!NOTE]
+> 可以安装`grub-hook-ca`来实现自动更新
 #### 2. systemd-boot
 使用`bootctl`将`systemd-boot`安装到 EFI 分区内
 ```ansi
