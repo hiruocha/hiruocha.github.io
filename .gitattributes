@@ -1,5 +1,1 @@
-.vitepress/** linguist-vendored
-package.json linguist-vendored
-pnpm-lock.yaml linguist-vendored
-docs/** linguist-documentation=false
-*.md linguist-detectable
+*.js linguist-language=astro
