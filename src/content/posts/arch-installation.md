@@ -1,6 +1,6 @@
 ---
 title: 全盘加密安装 Arch Linux
-description: 使用 LUKS+LVM/btrfs
+description: 使用 LUKS+LVM
 published: 2025-07-04
 tags: [Arch Linux, 安全]
 category: GNU/Linux
@@ -259,10 +259,8 @@ cryptsetup open /dev/sda2 cry0  6.74s user 0.09s system 123% cpu 5.556 total
 ```
 输入密码，完成解密，解密后的分区映射在`/dev/mapper/cry0`
 #### 创建文件系统
-选择喜欢的文件系统格式，LVM 和 btrfs 都比较灵活，可以创建跨盘文件系统，且都支持写时复制
-##### 1. LVM + ext4
-其实 LVM 可以搭配任何格式，这里以 ext4 为例
-###### 创建 LVM 卷组
+我们使用 LVM+ext4 作为我们的文件系统，其实 LVM 可以搭配任何格式，这里只是以 ext4 为例
+##### 创建 LVM 卷组
 使用`pvcreate`在解密后的分区上创建物理卷
 ```ansi
 [31mroot[0m@archiso [34m~[0m # pvcreate /dev/mapper/cry0
@@ -309,7 +307,7 @@ sda              8:0    0 476.9G  0 disk
     └─vg0-home 253:5    0 395.9G  0 lvm   
 [31mroot[0m@archiso [34m~[0m # 
 ```
-###### 格式化逻辑卷并挂载
+##### 格式化逻辑卷并挂载
 接下来，分别格式化创建好的各个逻辑卷（即分区）
 ```ansi
 [31mroot[0m@archiso [34m~[0m # mkfs.ext4 /dev/vg0/root
@@ -339,17 +337,13 @@ Writing inode tables: done
 Creating journal (262144 blocks): done
 Writing superblocks and filesystem accounting information: done     
 
-[31mroot[0m@archiso [34m~[0m # mkswap /dev/vg0/swap 
-Setting up swapspace version 1, size = 16 GiB (17179865088 bytes)
-no label, UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxxx
 [31mroot[0m@archiso [34m~[0m # 
 ```
-接下来按顺序挂载所有分区，并启用`swap`
+接下来按顺序挂载所有分区
 ```ansi
 [31mroot[0m@archiso [34m~[0m # mount /dev/vg0/root /mnt
 [31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/vg0/home /mnt/home
 [31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/sda1 /mnt/boot 
-[31mroot[0m@archiso [34m~[0m # swapon /dev/vg0/swap 
 [31mroot[0m@archiso [34m~[0m # 
 ```
 > [!WARNING]
@@ -363,127 +357,15 @@ sda              8:0    0 476.9G  0 disk
 ├─sda1           8:1    0     1G  0 part  /mnt/boot
 └─sda2           8:2    0 475.9G  0 part  
   └─cry0       253:2    0 475.9G  0 crypt 
-    ├─vg0-swap 253:3    0    16G  0 lvm   [SWAP]
+    ├─vg0-swap 253:3    0    16G  0 lvm   
     ├─vg0-root 253:4    0    64G  0 lvm   /mnt
     └─vg0-home 253:5    0 395.9G  0 lvm   /mnt/home
 [31mroot[0m@archiso [34m~[0m # 
 ```
-##### 2. btrfs
-将解密后的分区格式化为 btrfs 格式
-
-输入`mkfs.btrfs /dev/mapper/cry0`进行格式化
-> [!WARNING]
-> 此处要格式化的是`/dev/mapper/cry0`而不是`/dev/sda2`，不要搞错了
-```ansi
-[31mroot[0m@archiso [34m~[0m # mkfs.btrfs /dev/mapper/cry0 
-btrfs-progs v6.15
-See https://btrfs.readthedocs.io for more information.
-
-Performing full device TRIM /dev/mapper/cry0 (475.92GiB) ...
-NOTE: several default settings have changed in version 5.15, please make sure
-      this does not affect your deployments:
-      - DUP for metadata (-m dup)
-      - enabled no-holes (-O no-holes)
-      - enabled free-space-tree (-R free-space-tree)
-
-Label:              (null)
-UUID:               xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx
-Node size:          16384
-Sector size:        4096        (CPU page size: 4096)
-Filesystem size:    475.92GiB
-Block group profiles:
-  Data:             single            8.00MiB
-  Metadata:         DUP               1.00GiB
-  System:           DUP               8.00MiB
-SSD detected:       yes
-Zoned device:       no
-Features:           extref, skinny-metadata, no-holes, free-space-tree
-Checksum:           crc32c
-Number of devices:  1
-Devices:
-   ID        SIZE  PATH            
-    1   475.92GiB  /dev/mapper/cry0
-
-[31mroot[0m@archiso [34m~[0m # 
-```
-###### 创建 btrfs 子卷
-
-首先把格式化完成的分区挂载到`/mnt`
-
-使用命令`mount /dev/mapper/cry0 /mnt`挂载
-
-然后使用`btrfs subvolume create`命令创建子卷，我们需要分别创建`@`、`@home`、`@var`、`@swap`四个子卷
-```ansi
-[31mroot[0m@archiso [34m~[0m # btrfs subvolume create /mnt/@
-Create subvolume '/mnt/@'
-[31mroot[0m@archiso [34m~[0m # btrfs subvolume create /mnt/@home
-Create subvolume '/mnt/@home'
-[31mroot[0m@archiso [34m~[0m # btrfs subvolume create /mnt/@var
-Create subvolume '/mnt/@var'
-[31mroot[0m@archiso [34m~[0m # btrfs subvolume create /mnt/@swap
-Create subvolume '/mnt/@swap'
-[31mroot[0m@archiso [34m~[0m # 
-```
-创建好后可以使用`btrfs subvolume list -t /mnt`列出所有子卷
-```ansi
-[31mroot[0m@archiso [34m~[0m # btrfs subvolume list -t /mnt
-ID      gen     top level       path
---      ---     ---------       ----
-256     10      5               @
-257     10      5               @home
-258     10      5               @var
-259     10      5               @swap
-[31mroot[0m@archiso [34m~[0m # 
-```
-确认好后卸载掉分区
-```ansi
-[31mroot[0m@archiso [34m~[0m # umount /mnt
-```
-###### 挂载所有分区
-接下来按照顺序挂载我们创建好的所有分区
-
-从根分区开始
-> [!NOTE]
-> `swap`子卷挂载时不要启用压缩
-```ansi
-[31mroot[0m@archiso [34m~[0m # mount -o compress=zstd,subvol=@ /dev/mapper/cry0 /mnt
-[31mroot[0m@archiso [34m~[0m # mount --mkdir -o compress=zstd,subvol=@home /dev/mapper/cry0 /mnt/home
-[31mroot[0m@archiso [34m~[0m # mount --mkdir -o compress=zstd,subvol=@var /dev/mapper/cry0 /mnt/var 
-[31mroot[0m@archiso [34m~[0m # mount --mkdir -o subvol=@swap /dev/mapper/cry0 /mnt/swap
-[31mroot[0m@archiso [34m~[0m # mount --mkdir /dev/sda1 /mnt/boot
-```
-> [!WARNING]
-> 如果你要使用`systemd-boot`作为你的引导加载器，那么建议把`esp`分区挂载到`/mnt/efi`而非`/mnt/boot`
-
-挂载好后的`lsblk`输出应该是这样的
-```ansi
-[31mroot[0m@archiso [34m~[0m # lsblk
-NAME       MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINTS
-sda          8:0    0 476.9G  0 disk  
-├─sda1       8:1    0     1G  0 part  /mnt/boot
-└─sda2       8:2    0 475.9G  0 part  
-  └─cry0   253:2    0 475.9G  0 crypt /mnt/swap
-                                      /mnt/var
-                                      /mnt/home
-                                      /mnt
-[31mroot[0m@archiso [34m~[0m # 
-```
-接下来创建`swapfile`并启用（推荐设置为物理内存的一到二倍）
-```ansi
-[31mroot[0m@archiso [34m~[0m # btrfs filesystem mkswapfile --size 16g --uuid clear /mnt/swap/swapfile
-create swapfile /mnt/swap/swapfile size 16.00GiB (17179869184)
-[31mroot[0m@archiso [34m~[0m # swapon /mnt/swap/swapfile
-[31mroot[0m@archiso [34m~[0m # 
-```
-`btrfs filesystem mkswapfile --size 16g --uuid clear /mnt/swap/swapfile`：在`/mnt/swap/`下创建大小为 16GB 的`swapfile`
-
-`swapon /mnt/swap/swapfile`：启用`swapfile`
-
-恭喜你，最耗时的一步分区到这里已经完成了
 ### 开始安装系统
 首先切换镜像源
 ```ansi
-[31mroot[0m@archiso [34m~[0m # echo "Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
+[31mroot[0m@archiso [34m~[0m # echo 'Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch' > /etc/pacman.d/mirrorlist
 ```
 这行命令的意思是将镜像源网站`Server = https://mirrors.tuna.tsinghua.edu.cn/archlinux/$repo/os/$arch"`写入`/etc/pacman.d/mirrorlist`内并替换原来的内容
 
@@ -527,13 +409,11 @@ Created symlink '/etc/systemd/system/sysinit.target.wants/systemd-timesyncd.serv
 
 接下来安装一些基本工具
 ```ansi
-[root@archiso /]# pacman -S base-devel btrfs-progs lvm2 neovim networkmanager
+[root@archiso /]# pacman -S base-devel lvm2 neovim networkmanager
 ```
 `base-devel`：一些基本的工具包（包括`sudo`）
 
-`btrfs-progs`：`btrfs`文件系统工具（选择 btrfs 文件系统需装）
-
-`lvm2`：LVM 管理工具（选择 LVM 卷需装）
+`lvm2`：LVM 管理工具
 
 `neovim`：文本编辑器（不会用`vim`可以替换成`nano`）
 
@@ -597,14 +477,21 @@ Shiori-archlinux
 ::1              localhost
 127.0.1.1        Shiori-archlinux.localdomain Shiori-archlinux
 ```
-（`btrfs`）然后我们修改一下刚刚生成的`fstab`
+编辑`crypttab`
+```ansi
+[root@archiso /]# nvim /etc/crypttab
+```
+在里面写下一行
+```
+swap /dev/vg0/swap /dev/urandom swap,cipher=aes-xts-plain64,size=512,sector-size=4096
+```
+然后我们修改一下刚刚生成的`fstab`
 ```ansi
 [root@archiso /]# nvim /etc/fstab
 ```
-（`btrfs`）找到`/swap`的行，把relatime改成noatime，并把`compress=zstd:3`删掉，注意删掉一个逗号
+新增一行，启用`swap`
 ```
-# /dev/mapper/cry0
-UUID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX       /swap           btrfs           rw,noatime,ssd,space_cache=v2,subvol=/@swap    0 0
+/dev/mapper/swap none swap defaults 0 0
 ```
 为`root`用户设置一个密码
 ```ansi
@@ -624,11 +511,9 @@ passwd: password updated successfully
 ```
 找到`HOOKS=`这一行，我们将钩子替换为`systemd`提供的
 ```
-HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)
+HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt lvm2 filesystems fsck)
 ```
-使用`systemd`替换了`udev`，使用`sd-vconsole`替换了`keymap`和`consolefont`，在`block`和`filesystems`之间加入`sd-encrypt`
-
-（如果你使用 LVM，那么还要在`sd-encrypt`后添加`lvm2`）
+使用`systemd`替换了`udev`，使用`sd-vconsole`替换了`keymap`和`consolefont`，在`block`和`filesystems`之间加入`sd-encrypt`，在`sd-encrypt`后添加`lvm2`
 
 创建`/etc/vconsole.conf`
 ```ansi
@@ -715,13 +600,8 @@ Random seed file /efi/loader/random-seed successfully written (32 bytes).
 ```
 写入以下内容（注意把 UUID 换成你刚刚获取的）
 
-（LVM）
 ```
 rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/vg0/root
-```
-（btrfs）
-```
-rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/mapper/cry0 rootflags=subvol=@
 ```
 
 接下来我们更改内核配置文件让它在 EFI 分区内生成 UKI 镜像
@@ -781,13 +661,8 @@ default_uki="/efi/EFI/Linux/arch-linux-fallback.efi"
 ```
 写入以下内容（注意把 UUID 换成你刚刚获取的）
 
-（LVM）
 ```
 "Arch Linux" "rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/vg0/root rw initrd=intel-ucode.img initrd=initramfs-linux.img"
-```
-（btrfs）
-```
-"Arch Linux" "rd.luks.name=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx=cry0 root=/dev/mapper/cry0 rootflags=subvol=@ rw initrd=intel-ucode.img initrd=initramfs-linux.img"
 ```
 注意最后一个参数的`initrd=initramfs-linux.img`要改成你实际的`initramfs`镜像的名称，可以使用`ls /boot`查看
 ### 创建新用户
