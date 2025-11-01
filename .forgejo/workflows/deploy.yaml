@@ -1,0 +1,26 @@
+name: Deploy to Codeberg Pages
+on:
+  push:
+    branches: 
+      - main
+  workflow_dispatch:
+jobs:
+  build-and-deploy:
+    runs-on: codeberg-tiny-lazy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup PNPM
+        uses: https://github.com/pnpm/action-setup@v4
+        with:
+          version: latest
+      - name: Build
+        run: |
+          pnpm install
+          pnpm build
+
+      - name: Deploy
+        uses: https://itsblue.dev/actions/codeberg-pages-deploy@v1
+        with:
+          folder: ./dist
+          commit_message: 🚀 Update pages from ${{ var.FORGEJO_SHA }}
