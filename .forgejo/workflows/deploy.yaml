@@ -25,3 +25,4 @@ jobs:
         with:
           folder: ./dist
           commit_message: 🚀 Update pages from ${{ forgejo.sha }}
+          force: true
