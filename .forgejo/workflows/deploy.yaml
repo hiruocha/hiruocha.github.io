@@ -23,4 +23,4 @@ jobs:
         uses: https://itsblue.dev/actions/codeberg-pages-deploy@v1
         with:
           folder: ./dist
-          commit_message: 🚀 Update pages from ${{ var.FORGEJO_SHA }}
+          commit_message: 🚀 Update pages from ${{ forgejo.sha }}
