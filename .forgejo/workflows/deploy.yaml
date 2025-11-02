@@ -17,7 +17,6 @@ jobs:
           pnpm install
           pnpm build
           echo "hiruocha.is-a.dev" > ./dist/.domains
-          echo "hiruocha.codeberg.page" >> ./dist/.domains
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
