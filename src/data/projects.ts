@@ -20,15 +20,27 @@ export interface Project {
 
 export const projectsData: Project[] = [
 	{
+		id: "tra_sh",
+		title: "tra.sh",
+		description:
+			"用 POSIX Shell 编写的终端回收站管理工具 ",
+		image: "",
+		category: "desktop",
+		techStack: ["POSIX Shell"],
+		status: "planned",
+		sourceCode: "https://github.com/hiruocha/tra.sh",
+		startDate: "2025-06-22",
+	},
+	{
 		id: "hmcsm",
 		title: "HMCSM",
 		description:
 			"hiruocha's Minecraft Server Manager",
 		image: "",
-		category: "other",
+		category: "desktop",
 		techStack: ["POSIX Shell"],
 		status: "planned",
-		sourceCode: "https://github.com/hiruocha/hmcsm", // 更改为GitHub链接
+		sourceCode: "https://github.com/hiruocha/hmcsm",
 		startDate: "2025-06-22",
 	},
 	{
@@ -48,7 +60,7 @@ export const projectsData: Project[] = [
 		title: "Redmi Note 12 Turbo 增强模块",
 		description: "增强系统功能，还你旗舰体验！",
 		image: "",
-		category: "other",
+		category: "mobile",
 		techStack: ["Magisk Module"],
 		status: "completed",
 		sourceCode: "https://github.com/hiruocha/RedmiNote12TurboPatch",
@@ -60,7 +72,7 @@ export const projectsData: Project[] = [
 		title: "Xiaomi 13 Pro 增强模块",
 		description: "增强系统功能，还你旗舰体验！",
 		image: "",
-		category: "other",
+		category: "mobile",
 		techStack: ["Magisk Module"],
 		status: "completed",
 		sourceCode: "https://github.com/hiruocha/Xiaomi13ProPatch",
@@ -72,7 +84,7 @@ export const projectsData: Project[] = [
 		title: "HyperOSPatch",
 		description: "增强系统功能，还你旗舰体验！",
 		image: "",
-		category: "other",
+		category: "mobile",
 		techStack: ["Magisk Module", "POSIX Shell"],
 		status: "in-progress",
 		sourceCode: "https://github.com/hiruocha/HyperOSPatch",
