@@ -23,11 +23,11 @@ export const projectsData: Project[] = [
 		id: "tra_sh",
 		title: "tra.sh",
 		description:
-			"用 POSIX Shell 编写的终端回收站管理工具 ",
+			"完全 POSIX 兼容的 CLI 回收站管理工具 ",
 		image: "",
 		category: "desktop",
 		techStack: ["POSIX Shell"],
-		status: "planned",
+		status: "in-progress",
 		sourceCode: "https://github.com/hiruocha/tra.sh",
 		startDate: "2025-06-22",
 	},
