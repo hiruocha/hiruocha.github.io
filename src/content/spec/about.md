@@ -1,8 +1,8 @@
 # 关于本站
 
-我的小小个人网站，使用`Mizuki`作为框架搭建
+我的小小个人网站，随手做一些记录
 
-::github{repo="matsuzaka-yuki/Mizuki"}
+左侧真寻图片来自 [Pixiv](https://www.pixiv.net/artworks/108410800)
 
 ## 关于许可
 
@@ -13,6 +13,9 @@
 >根据要求，附上部分使用到的项目的许可
 
 ### Noto Sans
+
+::github{repo="notofonts/latin-greek-cyrillic"}
+
 ```
 Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
 
@@ -110,6 +113,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
 ### Noto Sans CJK
+
+::github{repo="notofonts/noto-cjk"}
+
 ```
 This Font Software is licensed under the SIL Open Font License,
 Version 1.1.
@@ -206,6 +212,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 ```
 
 ### Mizuki
+
+Mizuki 是一个基于 fuwari 开发的 Astro 主题
+
+::github{repo="matsuzaka-yuki/Mizuki"}
+
+::github{repo="saicaca/fuwari"}
 
 ```
 MIT License
