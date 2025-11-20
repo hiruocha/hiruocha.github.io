@@ -18,7 +18,6 @@ jobs:
         run: |
           pnpm install
           pnpm build
-          echo "hiruocha.is-a.dev" > ./dist/.domains
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
