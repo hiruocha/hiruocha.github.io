@@ -342,13 +342,7 @@ export const commentConfig: CommentConfig = {
 export const announcementConfig: AnnouncementConfig = {
 	title: "公告", // 公告标题
 	content: "欢迎来到我的小站", // 公告内容
-	closable: true, // 允许用户关闭公告
-	link: {
-		enable: true, // 启用链接
-		text: "查看源码", // 链接文本
-		url: "https://github.com/hiruocha/hiruocha.github.io", // 链接 URL
-		external: false, // 内部链接
-	},
+	closable: false, // 允许用户关闭公告
 };
 
 export const musicPlayerConfig: MusicPlayerConfig = {
